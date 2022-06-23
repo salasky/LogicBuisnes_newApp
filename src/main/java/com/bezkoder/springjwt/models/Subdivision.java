@@ -28,13 +28,13 @@ public class Subdivision {
     @Column(name = "supervisor")
     private String supervisor;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name="company_id")
     private Company company;
 
 
     @JsonIgnore
-    @OneToMany(mappedBy = "subdivision",cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "subdivision")
     private List<Employee> employees;
 
     public Subdivision(String name, String contact, String supervisor, Company company) {
@@ -43,6 +43,7 @@ public class Subdivision {
         this.supervisor = supervisor;
         this.company = company;
     }
+
 
 
 

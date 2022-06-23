@@ -1,6 +1,7 @@
 package com.bezkoder.springjwt.models;
 
-import com.bezkoder.springjwt.stateMachine.State;
+import com.bezkoder.springjwt.statemachine.event.Event;
+import com.bezkoder.springjwt.statemachine.state.State;
 import lombok.*;
 
 import javax.persistence.*;
@@ -14,6 +15,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Order {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)   //IDENTITY - увеличение по правилам в БД
@@ -53,6 +55,16 @@ public class Order {
         this.subject = subject;
         this.periodExecution = periodExecution;
         this.signControl = signControl;
+        this.orderText = orderText;
+        AuthEmployee = authEmployee;
+        ExecEmployee = execEmployee;
+    }
+
+    public Order(String subject, String periodExecution, String signControl, State state, String orderText, Employee authEmployee, List<Employee> execEmployee) {
+        this.subject = subject;
+        this.periodExecution = periodExecution;
+        this.signControl = signControl;
+        this.state = state;
         this.orderText = orderText;
         AuthEmployee = authEmployee;
         ExecEmployee = execEmployee;

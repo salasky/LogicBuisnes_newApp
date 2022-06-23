@@ -34,7 +34,7 @@ public class Company {
     private String supervisor;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "company",cascade = {CascadeType.ALL})
+    @OneToMany(mappedBy = "company")
     private List<Subdivision> subdivisions;
 
 

@@ -1,4 +1,4 @@
-package com.bezkoder.springjwt.payload.request;
+package com.bezkoder.springjwt.models.payload.request;
 
 import lombok.Getter;
 import lombok.Setter;

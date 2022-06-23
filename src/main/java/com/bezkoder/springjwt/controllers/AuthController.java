@@ -1,20 +1,17 @@
 package com.bezkoder.springjwt.controllers;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.persistence.Column;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.validation.Valid;
-
 import com.bezkoder.springjwt.models.*;
+import com.bezkoder.springjwt.models.payload.request.LoginRequest;
+import com.bezkoder.springjwt.models.payload.request.SignupRequest;
+import com.bezkoder.springjwt.models.payload.response.JwtResponse;
+import com.bezkoder.springjwt.models.payload.response.MessageResponse;
 import com.bezkoder.springjwt.repository.EmployeeRepositories;
+import com.bezkoder.springjwt.repository.RoleRepository;
 import com.bezkoder.springjwt.repository.SubdivisionRepositories;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.bezkoder.springjwt.repository.UserRepository;
+import com.bezkoder.springjwt.security.jwt.JwtUtils;
+import com.bezkoder.springjwt.security.services.UserDetailsImpl;
+import com.bezkoder.springjwt.validator.Validator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,20 +22,14 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.bezkoder.springjwt.payload.request.LoginRequest;
-import com.bezkoder.springjwt.payload.request.SignupRequest;
-import com.bezkoder.springjwt.payload.response.JwtResponse;
-import com.bezkoder.springjwt.payload.response.MessageResponse;
-import com.bezkoder.springjwt.repository.RoleRepository;
-import com.bezkoder.springjwt.repository.UserRepository;
-import com.bezkoder.springjwt.security.jwt.JwtUtils;
-import com.bezkoder.springjwt.security.services.UserDetailsImpl;
+import javax.validation.Valid;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -53,8 +44,10 @@ public class AuthController {
     private JwtUtils jwtUtils;
     private EmployeeRepositories employeeRepositories;
     private SubdivisionRepositories subdivisionRepositories;
+    private Validator validator;
+
     @Autowired
-    public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils, EmployeeRepositories employeeRepositories, SubdivisionRepositories subdivisionRepositories) {
+    public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils, EmployeeRepositories employeeRepositories, SubdivisionRepositories subdivisionRepositories, Validator validator) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
@@ -62,6 +55,7 @@ public class AuthController {
         this.jwtUtils = jwtUtils;
         this.employeeRepositories = employeeRepositories;
         this.subdivisionRepositories = subdivisionRepositories;
+        this.validator = validator;
     }
 
     @PostMapping("/signin")
@@ -77,7 +71,7 @@ public class AuthController {
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
-
+        logger.info("Аутентификация пользователя");
         return ResponseEntity.ok(new JwtResponse(jwt,
                 userDetails.getId(),
                 userDetails.getUsername(),
@@ -87,18 +81,21 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-        System.out.println("Вход в контроллер registerUser");
+
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
+            logger.error("Username уже используется");
             return ResponseEntity
                     .badRequest()
-                    .body(new MessageResponse("Error: Username is already taken!"));
+                    .body(new MessageResponse("Username уже используется!"));
         }
 
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
+            logger.error("Email уже используется");
             return ResponseEntity
                     .badRequest()
-                    .body(new MessageResponse("Error: Email is already in use!"));
+                    .body(new MessageResponse("Email уже используется"));
         }
+
 
         // Create new user's account
         User user = new User(signUpRequest.getUsername(),
