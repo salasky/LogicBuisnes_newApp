@@ -1,9 +1,0 @@
-package com.bezkoder.springjwt.statemachine.state;
-
-public enum State {
-    PREPARATION,
-    PERFORMANCE,
-    CONTROL,
-    REVISION,
-    ACCEPTANCE
-}
