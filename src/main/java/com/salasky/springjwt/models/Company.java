@@ -22,13 +22,13 @@ public class Company {
     private Long id;
 
     @Column(name = "name_of_company")
-    private String name_of_company;
+    private String companyName;
 
     @Column(name = "physical_adress")
-    private String physical_adress;
+    private String physicalAddress;
 
     @Column(name = "legal_address")
-    private String legal_address;
+    private String legalAddress;
 
     @Column(name = "supervisor")
     private String supervisor;
@@ -38,10 +38,10 @@ public class Company {
     private List<Subdivision> subdivisions;
 
 
-    public Company( String name_of_company, String physical_adress, String legal_address, String supervisor) {
-        this.name_of_company = name_of_company;
-        this.physical_adress = physical_adress;
-        this.legal_address = legal_address;
+    public Company(String companyName, String physical_adress, String legal_address, String supervisor) {
+        this.companyName = companyName;
+        this.physicalAddress = physical_adress;
+        this.legalAddress = legal_address;
         this.supervisor = supervisor;
     }
 

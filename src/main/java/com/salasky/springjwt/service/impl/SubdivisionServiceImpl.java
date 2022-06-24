@@ -48,7 +48,7 @@ public class SubdivisionServiceImpl implements SubdivisionService {
     @Override
     public ResponseEntity add(SubdivisionDTO subdivisionDTO) {
 
-        var companys=companyRepositories.findById(subdivisionDTO.getCompanyId());
+        var companys=companyRepositories.findCompanyByCompanyName(subdivisionDTO.getCompanyName());
         if(companys.isPresent()){
             var company=companys.get();
             Subdivision subdivision=new Subdivision(subdivisionDTO.getName(),subdivisionDTO.getContact(),subdivisionDTO.getSupervisor(),company);
@@ -56,18 +56,19 @@ public class SubdivisionServiceImpl implements SubdivisionService {
             var sub=subdivisionRepositories.save(subdivision);
             return ResponseEntity.status(HttpStatus.OK).body(sub);
         }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Нет компании с данным id");
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Не найдена компания с названием "+subdivisionDTO.getCompanyName()+"\n" +
+                "Пожалуйста,обратитесь к модератору для добавления в базу");
 
     }
 
     @Override
     public ResponseEntity update(Long id, SubdivisionDTO newsubdivision) {
-        if(companyRepositories.existsById(newsubdivision.getCompanyId())){
+        if(companyRepositories.existsByCompanyName(newsubdivision.getCompanyName())){
            if(subdivisionRepositories.existsById(id)){
                var sb=subdivisionRepositories.findById(id).get();
                       sb.setName(newsubdivision.getName());
                       sb.setContact(newsubdivision.getContact());
-                      sb.setCompany(companyRepositories.findById(newsubdivision.getCompanyId()).get());
+                      sb.setCompany(companyRepositories.findCompanyByCompanyName(newsubdivision.getCompanyName()).get());
                       sb.setSupervisor(newsubdivision.getSupervisor());
                       logger.info("Обновление информации о подразделении");
                       return ResponseEntity.status(HttpStatus.OK).body(subdivisionRepositories.save(sb));
@@ -76,13 +77,14 @@ public class SubdivisionServiceImpl implements SubdivisionService {
             sab.setId(id);
             sab.setName(newsubdivision.getName());
             sab.setContact(newsubdivision.getContact());
-            sab.setCompany(companyRepositories.findById(newsubdivision.getCompanyId()).get());
+            sab.setCompany(companyRepositories.findCompanyByCompanyName(newsubdivision.getCompanyName()).get());
             sab.setSupervisor(newsubdivision.getSupervisor());
             logger.error("Создано новое подразделение с id "+id);
             return ResponseEntity.status(HttpStatus.OK).body("Создано новое подразделение с id "+id);
         }
-        logger.error("Не найдена компания с id "+newsubdivision.getCompanyId());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Не найдена компания с id "+newsubdivision.getCompanyId());
+        logger.error("Не найдена компания с названием "+newsubdivision.getCompanyName());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Не найдена компания с названием "+newsubdivision.getCompanyName()+"\n" +
+                "Пожалуйста,обратитесь к модератору для добавления в базу");
     }
 
     @Override

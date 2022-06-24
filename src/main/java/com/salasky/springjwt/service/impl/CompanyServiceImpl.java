@@ -68,9 +68,9 @@ public class CompanyServiceImpl implements CompanyService {
 
         return companyRepositories.findById(id)
                 .map(company -> {
-                    company.setName_of_company(newCompany.getName_of_company());
-                    company.setLegal_address(newCompany.getLegal_address());
-                    company.setPhysical_adress(newCompany.getPhysical_adress());
+                    company.setCompanyName(newCompany.getCompanyName());
+                    company.setLegalAddress(newCompany.getLegalAddress());
+                    company.setPhysicalAddress(newCompany.getPhysicalAddress());
                     company.setSupervisor(newCompany.getSupervisor());
 
                     logger.info("Обнавлена информация о компании с id "+id);

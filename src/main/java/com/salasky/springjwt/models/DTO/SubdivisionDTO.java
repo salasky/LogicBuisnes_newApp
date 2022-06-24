@@ -17,7 +17,7 @@ public class SubdivisionDTO {
 
     private String supervisor;
 
-
-    private Long companyId;
+    private String companyName;
+    /*private Long companyId;*/
 
 }
