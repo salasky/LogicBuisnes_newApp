@@ -81,6 +81,9 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
+        System.out.println(signUpRequest.getUsername());
+        System.out.println(signUpRequest.getFirstName());
+        System.out.println(signUpRequest.getJobTitle());
 
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             logger.error("Username уже используется");
@@ -96,7 +99,8 @@ public class AuthController {
                     .body(new MessageResponse("Email уже используется"));
         }
 
-
+        Optional<Subdivision> subdivision=subdivisionRepositories.findByName(signUpRequest.getSubdivisionName());
+        if(subdivision.isPresent()){
         // Create new user's account
         User user = new User(signUpRequest.getUsername(),
                 signUpRequest.getEmail(),
@@ -136,17 +140,17 @@ public class AuthController {
         userRepository.save(user);
 
         // Create new employee
-        Optional<Subdivision> subdivision=subdivisionRepositories.findById(signUpRequest.getSubdivisionId());
-        if(subdivision.isPresent()){
-            Employee employee=new Employee(signUpRequest.getUsername(),signUpRequest.getFirst_name()
-                    ,signUpRequest.getSecond_name(),signUpRequest.getLast_name()
-                    ,signUpRequest.getJob_title(),subdivision.get());
+
+            Employee employee=new Employee(signUpRequest.getUsername(),signUpRequest.getFirstName()
+                    ,signUpRequest.getSecondName(),signUpRequest.getLastName()
+                    ,signUpRequest.getJobTitle(),subdivision.get());
             employeeRepositories.save(employee);
             logger.info("Добавлен новый работник");
             return  ResponseEntity.status(HttpStatus.OK).body(employee);
         }
 
-        logger.error("Добавление пользователя.Subdivision c id "+signUpRequest.getSubdivisionId()+ " не существует");
-        return ResponseEntity.status(HttpStatus.OK).body("Subdivision c id "+signUpRequest.getSubdivisionId()+ " не существует");
+        logger.error("Добавление пользователя.Subdivision c названием "+signUpRequest.getSubdivisionName()+ " не существует");
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Subdivision c названием "+signUpRequest.getSubdivisionName()+ " не существует\n" +
+                "Пожалуйста обратитесь к модератору для добавления подразделения в базу");
     }
 }

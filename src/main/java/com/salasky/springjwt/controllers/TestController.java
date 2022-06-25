@@ -31,6 +31,7 @@ public class TestController {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String currentPrincipalName = authentication.getName();
     System.out.println(currentPrincipalName);
+
     return "Moderator Board.";
   }
 

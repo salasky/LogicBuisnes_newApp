@@ -1,14 +1,13 @@
 package com.salasky.springjwt.models.DTO;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
+@AllArgsConstructor
 public class OrderDTO {
 
     private String subject;
@@ -21,16 +20,7 @@ public class OrderDTO {
     private String orderText;
 
 
-    private long authEmployeeId;
+    private String execEmployeeUsername;
 
-    private long execEmployeeId;
 
-    public OrderDTO(String subject, String periodExecution, String signControl, String orderText, Long authEmployeeId, Long execEmployeeId) {
-        this.subject = subject;
-        this.periodExecution = periodExecution;
-        this.signControl = signControl;
-        this.orderText = orderText;
-        this.authEmployeeId = authEmployeeId;
-        this.execEmployeeId = execEmployeeId;
-    }
 }

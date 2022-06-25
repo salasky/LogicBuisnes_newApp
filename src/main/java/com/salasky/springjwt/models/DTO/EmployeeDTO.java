@@ -9,16 +9,17 @@ public class EmployeeDTO {
 
     private String username;
 
-    private String first_name;
+    private String firstName;
 
-    private String second_name;
+    private String secondName;
 
-    private String last_name;
+    private String lastName;
 
-    private String job_title;
+    private String jobTitle;
+
+    private String subdivisionName;
 
 
-    private Long subdivisionId;
 
 
 

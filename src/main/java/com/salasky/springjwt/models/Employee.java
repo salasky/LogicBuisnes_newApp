@@ -23,16 +23,16 @@ public class Employee {
     private String username;
 
     @Column(name = "first_name")
-    private String first_name;
+    private String firstName;
 
     @Column(name = "second_name")
-    private String second_name;
+    private String secondName;
 
     @Column(name = "last_name")
-    private String last_name;
+    private String lastName;
 
     @Column(name = "job_title")
-    private String job_title;
+    private String jobTitle;
 
     @JsonIgnore
     @ManyToOne
@@ -53,10 +53,10 @@ public class Employee {
 
     public Employee(String username, String first_name, String second_name, String last_name, String job_title, Subdivision subdivision) {
         this.username = username;
-        this.first_name = first_name;
-        this.second_name = second_name;
-        this.last_name = last_name;
-        this.job_title = job_title;
+        this.firstName = first_name;
+        this.secondName = second_name;
+        this.lastName = last_name;
+        this.jobTitle = job_title;
         this.subdivision = subdivision;
     }
 
@@ -65,10 +65,10 @@ public class Employee {
         return "Employee{" +
                 "id=" + id +
                 ", username='" + username + '\'' +
-                ", first_name='" + first_name + '\'' +
-                ", second_name='" + second_name + '\'' +
-                ", last_name='" + last_name + '\'' +
-                ", job_title='" + job_title + '\'' +
+                ", first_name='" + firstName + '\'' +
+                ", second_name='" + secondName + '\'' +
+                ", last_name='" + lastName + '\'' +
+                ", job_title='" + jobTitle + '\'' +
                 ", subdivision=" + subdivision +
                 '}';
     }

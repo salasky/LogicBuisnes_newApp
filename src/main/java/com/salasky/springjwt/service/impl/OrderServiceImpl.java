@@ -16,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineFactory;
 import org.springframework.statemachine.persist.StateMachinePersister;
@@ -50,16 +52,15 @@ public class OrderServiceImpl implements OrderService {
 
         //Реализовать: автор поручения-тот кто аутентифицировался
 
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+        System.out.println(currentPrincipalName);
 
+        var authorOrder=employeeRepositories.findByUsername(currentPrincipalName).get();
 
-        if (!employeeRepositories.findById(orderDTO.getAuthEmployeeId()).isPresent()) {
-            logger.error("Автор поручения с id" + orderDTO.getAuthEmployeeId() + " не существует");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Автор поручения с id " + orderDTO.getAuthEmployeeId() + " не существует");
-        }
-
-        if (!employeeRepositories.findById(orderDTO.getExecEmployeeId()).isPresent()) {
-            logger.error("Исполнитель поручения поручения с id " + orderDTO.getExecEmployeeId() + " не существует");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Исполнитель поручения поручения с id " + orderDTO.getExecEmployeeId() + " не существует");
+        if (!employeeRepositories.findByUsername(orderDTO.getExecEmployeeUsername()).isPresent()) {
+            logger.error("Исполнитель поручения поручения с username " + orderDTO.getExecEmployeeUsername() + " не существует");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Исполнитель поручения поручения с username " + orderDTO.getExecEmployeeUsername() + " не существует");
         }
 
         if (!dateValidator.isValidDate(orderDTO.getPeriodExecution())) {
@@ -68,11 +69,11 @@ public class OrderServiceImpl implements OrderService {
                     "Формат даты YYYY-MM-DD");
         }
         List<Employee> employeesList = new ArrayList<>();
-        var employee = employeeRepositories.findById(orderDTO.getExecEmployeeId()).get();
+        var employee = employeeRepositories.findByUsername(orderDTO.getExecEmployeeUsername()).get();
         employeesList.add(employee);
 
         var order = new Order(orderDTO.getSubject(), orderDTO.getPeriodExecution(), orderDTO.getSignControl(), orderDTO.getOrderText()
-                , employeeRepositories.findById(orderDTO.getAuthEmployeeId()).get()
+                , authorOrder
                 , employeesList);
 
         var sm = stateMachineFactory.getStateMachine();
@@ -87,11 +88,11 @@ public class OrderServiceImpl implements OrderService {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Не удалось сохранить состояние StateMachine");
         }
     }
-    private Order setter(OrderDTO orderDTO,Order order){
+    private Order setter(OrderDTO orderDTO,Order order,Employee authorOrder){
         order.setOrderText(orderDTO.getOrderText());
-        order.setAuthEmployee(employeeRepositories.findById(orderDTO.getAuthEmployeeId()).get());
+        order.setAuthEmployee(authorOrder);
         List<Employee> employees=new ArrayList<>();
-        employees.add(employeeRepositories.findById(orderDTO.getExecEmployeeId()).get());
+        employees.add(employeeRepositories.findByUsername(orderDTO.getExecEmployeeUsername()).get());
         order.setExecEmployee(employees);
         order.setPeriodExecution(orderDTO.getPeriodExecution());
         order.setSignControl(orderDTO.getSignControl());
@@ -100,50 +101,61 @@ public class OrderServiceImpl implements OrderService {
     }
     @Override
     public ResponseEntity update(OrderDTO orderDTO, Long id) {
-        if(employeeRepositories.existsById(orderDTO.getAuthEmployeeId())){
-            if(employeeRepositories.existsById(orderDTO.getExecEmployeeId())){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+
+
+        var authorOrder=employeeRepositories.findByUsername(currentPrincipalName).get();
+            if(employeeRepositories.existsByUsername(orderDTO.getExecEmployeeUsername())){
                 if(orderRepositories.existsById(id)){
                     var order=orderRepositories.findById(id).get();
-                    logger.info("Обновление информации о подразделении");
-                    return ResponseEntity.status(HttpStatus.OK).body(orderRepositories.save(setter(orderDTO,order)));
+                    logger.info("Пользователь "+currentPrincipalName+". Обновление информации о подразделении");
+                    return ResponseEntity.status(HttpStatus.OK).body(orderRepositories.save(setter(orderDTO,order,authorOrder)));
                 }
                 var order=new Order();
                 order.setId(id);
-                orderRepositories.save( setter(orderDTO,order));
-                logger.error("Создано новое поручение с id "+id);
-                return ResponseEntity.status(HttpStatus.OK).body("Создано новое поручение с id "+id);
+                var saveorder=orderRepositories.save( setter(orderDTO,order,authorOrder));
+                logger.error("Пользователь "+currentPrincipalName+".Создано новое поручение с id "+id);
+                return ResponseEntity.status(HttpStatus.OK).body(saveorder);
             }
-            logger.error("Не найден работник с id "+orderDTO.getExecEmployeeId());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Не найден работник с id "+orderDTO.getExecEmployeeId());
-        }
-        logger.error("Не найден работник с id "+orderDTO.getAuthEmployeeId());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Не найден работник с id "+orderDTO.getAuthEmployeeId());
+            logger.error("Не найден работник с username "+orderDTO.getExecEmployeeUsername());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Не найден работник с username "+orderDTO.getExecEmployeeUsername());
     }
 
     @Override
     public List<Order> getAll() {
-        logger.info("Выдача инфрмации о поручениях");
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+        logger.info("Пользователь "+currentPrincipalName+".Выдача инфрмации о поручениях");
         return orderRepositories.findAll();
     }
 
     @Override
     public ResponseEntity getById(Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
         var order=orderRepositories.findById(id);
 
         if(order.isPresent()){
-            logger.info("Выдача инфрмации о поручении");
+            logger.info("Пользователь "+currentPrincipalName+ ".Выдача инфрмации о поручении");
             return ResponseEntity.status(HttpStatus.OK).body(order.get());
         }
-        logger.error("Не удалось найти поручение с id "+id);
+        logger.error("Пользователь "+currentPrincipalName+".Не удалось найти поручение с id "+id);
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Не удалось найти поручение с id "+id);
     }
 
     @Override
     public ResponseEntity delete(Long id) {
         if(orderRepositories.existsById(id)){
-            orderRepositories.deleteById(id);
-            logger.info("Поручение  с id "+id+ " удалено");
-            return ResponseEntity.status(HttpStatus.OK).body("Поручение  с id "+id+ " удалено");
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String currentPrincipalName = authentication.getName();
+           if(orderRepositories.findById(id).get().getAuthEmployee().getUsername().equals(currentPrincipalName)){
+               orderRepositories.deleteById(id);
+               logger.info("Поручение  с id "+id+ " удалено");
+               return ResponseEntity.status(HttpStatus.OK).body("Поручение  с id "+id+ " удалено");
+           }
+            logger.info("Попытка удаления поручения");
+            return ResponseEntity.status(HttpStatus.OK).body("Поручение  может удалить только автор");
         }
         logger.error("Удаление.Поручение  с id "+id+ " не найдено");
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Удаление.Поручение  с id "+id+ " не найдено");

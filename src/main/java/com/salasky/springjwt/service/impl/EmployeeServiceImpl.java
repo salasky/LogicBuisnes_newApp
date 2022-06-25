@@ -48,32 +48,33 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public ResponseEntity update(Long id, EmployeeDTO employeeDTO) {
 
-        if(subdivisionRepositories.existsById(employeeDTO.getSubdivisionId())){
+        if(subdivisionRepositories.existsByName(employeeDTO.getSubdivisionName())){
             if(employeeRepositories.existsById(id)){
                 var employee=employeeRepositories.findById(id).get();
-                employee.setFirst_name(employeeDTO.getFirst_name());
-                employee.setSecond_name(employeeDTO.getSecond_name());
-                employee.setLast_name(employeeDTO.getLast_name());
-                employee.setJob_title(employeeDTO.getJob_title());
+                employee.setFirstName(employeeDTO.getFirstName());
+                employee.setSecondName(employeeDTO.getSecondName());
+                employee.setLastName(employeeDTO.getLastName());
+                employee.setJobTitle(employeeDTO.getJobTitle());
                 employee.setUsername(employeeDTO.getUsername());
-                employee.setSubdivision(subdivisionRepositories.findById(employeeDTO.getSubdivisionId()).get());
+                employee.setSubdivision(subdivisionRepositories.findByName(employeeDTO.getSubdivisionName()).get());
                 logger.info("Обновление информации о работнике");
                 return ResponseEntity.status(HttpStatus.OK).body(employeeRepositories.save(employee));
             }
             var emp=new Employee();
             emp.setId(id);
-            emp.setFirst_name(employeeDTO.getFirst_name());
-            emp.setSecond_name(employeeDTO.getSecond_name());
-            emp.setLast_name(employeeDTO.getLast_name());
-            emp.setJob_title(employeeDTO.getJob_title());
+            emp.setFirstName(employeeDTO.getFirstName());
+            emp.setSecondName(employeeDTO.getSecondName());
+            emp.setLastName(employeeDTO.getLastName());
+            emp.setJobTitle(employeeDTO.getJobTitle());
             emp.setUsername(employeeDTO.getUsername());
-            emp.setSubdivision(subdivisionRepositories.findById(employeeDTO.getSubdivisionId()).get());
+            emp.setSubdivision(subdivisionRepositories.findByName(employeeDTO.getSubdivisionName()).get());
 
             logger.error("Создан новый работник с id "+id);
             return ResponseEntity.status(HttpStatus.OK).body("Создан новый работник с id "+id);
         }
-        logger.error("Не найдено подразделение с id "+employeeDTO.getSubdivisionId());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Не найдено подразделение с id "+employeeDTO.getSubdivisionId());
+        logger.error("Не найдено подразделение названием "+employeeDTO.getSubdivisionName());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Не найдено подразделение названием "+employeeDTO.getSubdivisionName()+"\n" +
+                "Пожалуйста,обратитесь к модератору для добавления подразделения в базу");
     }
 
     @Override

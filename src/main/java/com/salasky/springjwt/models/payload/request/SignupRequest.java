@@ -27,18 +27,19 @@ public class SignupRequest {
 
   @NotBlank
   @Size(min = 3, max = 40)
-  private String first_name;
+  private String firstName;
 
 
-  private String second_name;
+  private String secondName;
 
 
-  private String last_name;
+  private String lastName;
 
   @NotBlank
-  private String job_title;
+  private String jobTitle;
 
+  @NotBlank
+  private String subdivisionName;
 
-  private Long subdivisionId;
 
 }

@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface SubdivisionRepositories extends JpaRepository<Subdivision,Long> {
     Optional<Subdivision> findByName(String name);
+    boolean existsByName(String name);
 }

@@ -1,5 +1,6 @@
 package com.salasky.springjwt.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.salasky.springjwt.statemachine.state.State;
 import lombok.*;
 
@@ -36,12 +37,10 @@ public class Order {
     @Column(name = "order_text")
     private String orderText;
 
-
+    @JsonIgnore
     @ManyToOne
     @JoinColumn(name="employeeAuthor_id", nullable=false)
     private Employee AuthEmployee;
-
-
 
     @ManyToMany
     @JoinTable(
