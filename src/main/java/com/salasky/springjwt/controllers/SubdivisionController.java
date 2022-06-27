@@ -1,5 +1,6 @@
 package com.salasky.springjwt.controllers;
 
+import com.salasky.springjwt.models.DTO.OutSubdivisionDTO;
 import com.salasky.springjwt.models.DTO.SubdivisionDTO;
 import com.salasky.springjwt.models.Subdivision;
 import com.salasky.springjwt.service.SubdivisionService;
@@ -21,7 +22,7 @@ public class SubdivisionController {
     }
 
     @GetMapping
-    public List<Subdivision> getAll(){
+    public List<OutSubdivisionDTO> getAll(){
         return subdivisionService.getAll();
     }
 

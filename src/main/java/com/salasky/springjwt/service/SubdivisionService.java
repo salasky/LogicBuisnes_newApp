@@ -1,5 +1,6 @@
 package com.salasky.springjwt.service;
 
+import com.salasky.springjwt.models.DTO.OutSubdivisionDTO;
 import com.salasky.springjwt.models.DTO.SubdivisionDTO;
 import com.salasky.springjwt.models.Subdivision;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +12,7 @@ public interface SubdivisionService {
 
     ResponseEntity getById(Long id);
 
-    List<Subdivision> getAll();
+    List<OutSubdivisionDTO> getAll();
 
     ResponseEntity update(Long id, SubdivisionDTO newsubdivision);
 

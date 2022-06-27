@@ -1,10 +1,7 @@
 package com.salasky.springjwt.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.List;
@@ -15,6 +12,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @ToString
+@Data
 public class Company {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)   //IDENTITY - увеличение по правилам в БД

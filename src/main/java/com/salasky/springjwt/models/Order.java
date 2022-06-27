@@ -14,6 +14,7 @@ import java.util.List;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@Data
 public class Order {
 
 
@@ -38,11 +39,11 @@ public class Order {
     private String orderText;
 
     @JsonIgnore
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="employeeAuthor_id", nullable=false)
     private Employee AuthEmployee;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "exec_like",
             joinColumns = @JoinColumn(name = "order_id"),

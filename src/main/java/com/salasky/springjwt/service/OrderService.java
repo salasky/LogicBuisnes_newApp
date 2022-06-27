@@ -28,6 +28,8 @@ public interface OrderService {
 
     ResponseEntity performanceState(Long orderid);
 
+    List<Order> getMyOrder();
+
     //получение конечного автомата из базы данных
     StateMachine<State, Event> build (Long orderId);
     //Конечный автомат поддерживает стандартные сообщения Spring.

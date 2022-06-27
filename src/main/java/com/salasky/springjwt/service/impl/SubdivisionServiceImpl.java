@@ -1,7 +1,9 @@
 package com.salasky.springjwt.service.impl;
 
+import com.salasky.springjwt.models.DTO.OutSubdivisionDTO;
 import com.salasky.springjwt.models.DTO.SubdivisionDTO;
 import com.salasky.springjwt.models.Subdivision;
+import com.salasky.springjwt.models.payload.response.MessageResponse;
 import com.salasky.springjwt.repository.CompanyRepositories;
 import com.salasky.springjwt.repository.EmployeeRepositories;
 import com.salasky.springjwt.repository.SubdivisionRepositories;
@@ -14,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class SubdivisionServiceImpl implements SubdivisionService {
@@ -40,9 +43,13 @@ public class SubdivisionServiceImpl implements SubdivisionService {
     }
 
     @Override
-    public List<Subdivision> getAll() {
+    public List<OutSubdivisionDTO> getAll() {
         logger.info("Выдача инфрмации о подразделениях");
-        return subdivisionRepositories.findAll();
+
+
+        return  subdivisionRepositories.findAll().stream().map(subdivision -> new OutSubdivisionDTO(
+                subdivision.getId(),subdivision.getName(),subdivision.getContact(),
+                subdivision.getSupervisor(),subdivision.getCompany().getCompanyName())).collect(Collectors.toList());
     }
 
     @Override
@@ -56,8 +63,11 @@ public class SubdivisionServiceImpl implements SubdivisionService {
             var sub=subdivisionRepositories.save(subdivision);
             return ResponseEntity.status(HttpStatus.OK).body(sub);
         }
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Не найдена компания с названием "+subdivisionDTO.getCompanyName()+"\n" +
-                "Пожалуйста,обратитесь к модератору для добавления в базу");
+        logger.error("Не найдена компания с названием "+subdivisionDTO.getCompanyName());
+        return ResponseEntity
+                .badRequest()
+                .body(new MessageResponse("Не найдена компания с названием "+subdivisionDTO.getCompanyName()+"\n" +
+                        "Пожалуйста,обратитесь к модератору для добавления в базу"));
 
     }
 

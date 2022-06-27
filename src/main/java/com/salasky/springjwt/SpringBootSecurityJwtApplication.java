@@ -17,8 +17,10 @@ public class SpringBootSecurityJwtApplication {
 		var subdivisoinRepositories=context.getBean(SubdivisionRepositories.class);
 		var employeeRepositories=context.getBean(EmployeeRepositories.class);
 		var orderRepositories=context.getBean(OrderRepositories.class);
-/*
 
+		System.out.println(orderRepositories.getAllByemployeeAuthor(employeeRepositories.findByUsername("salavat").get()));
+
+		/*
         Company company=new Company("Neft","Adress",
                 "Adress","Ruk");
 

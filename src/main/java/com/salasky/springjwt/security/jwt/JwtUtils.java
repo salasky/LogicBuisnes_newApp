@@ -15,10 +15,10 @@ import io.jsonwebtoken.*;
 public class JwtUtils {
   private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
-  @Value("${bezkoder.app.jwtSecret}")
+  @Value("${salasky.app.jwtSecret}")
   private String jwtSecret;
 
-  @Value("${bezkoder.app.jwtExpirationMs}")
+  @Value("${salasky.app.jwtExpirationMs}")
   private int jwtExpirationMs;
 
   public String generateJwtToken(Authentication authentication) {

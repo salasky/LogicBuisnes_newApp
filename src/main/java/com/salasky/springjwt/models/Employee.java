@@ -12,6 +12,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @ToString
+@Data
 public class Employee {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)   //IDENTITY - увеличение по правилам в БД
@@ -41,7 +42,7 @@ public class Employee {
 
 
     @JsonIgnore
-    @OneToMany(mappedBy="AuthEmployee")
+    @OneToMany(mappedBy="AuthEmployee",fetch = FetchType.EAGER)
     private List<Order> AuthOrders;
 
 

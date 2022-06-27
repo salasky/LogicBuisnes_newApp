@@ -17,11 +17,13 @@ public class CompanyController {
     private CompanyService companyService;
 
     @GetMapping
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('USER')")
     public List<Company> getAll(){
         return companyService.getAll();
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('USER')")
     public ResponseEntity getById(@PathVariable Long id){
         return companyService.getById(id);
     }

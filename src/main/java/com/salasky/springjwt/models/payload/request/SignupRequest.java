@@ -41,5 +41,7 @@ public class SignupRequest {
   @NotBlank
   private String subdivisionName;
 
+  @NotBlank
+  private String companyName;
 
 }

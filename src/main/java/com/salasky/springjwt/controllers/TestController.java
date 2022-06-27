@@ -16,7 +16,7 @@ public class TestController {
 
   @GetMapping("/all")
   public String allAccess() {
-    return "Public Content.";
+    return "hello world!";
   }
 
   @GetMapping("/user")
@@ -30,7 +30,7 @@ public class TestController {
   public String moderatorAccess() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     String currentPrincipalName = authentication.getName();
-    System.out.println(currentPrincipalName);
+
 
     return "Moderator Board.";
   }

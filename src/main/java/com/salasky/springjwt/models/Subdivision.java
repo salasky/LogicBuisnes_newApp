@@ -13,6 +13,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+
 public class Subdivision {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)   //IDENTITY - увеличение по правилам в БД
@@ -34,7 +35,7 @@ public class Subdivision {
 
 
     @JsonIgnore
-    @OneToMany(mappedBy = "subdivision")
+    @OneToMany(mappedBy = "subdivision",fetch = FetchType.EAGER)
     private List<Employee> employees;
 
     public Subdivision(String name, String contact, String supervisor, Company company) {

@@ -5,10 +5,7 @@ import com.salasky.springjwt.models.payload.request.LoginRequest;
 import com.salasky.springjwt.models.payload.request.SignupRequest;
 import com.salasky.springjwt.models.payload.response.JwtResponse;
 import com.salasky.springjwt.models.payload.response.MessageResponse;
-import com.salasky.springjwt.repository.EmployeeRepositories;
-import com.salasky.springjwt.repository.RoleRepository;
-import com.salasky.springjwt.repository.SubdivisionRepositories;
-import com.salasky.springjwt.repository.UserRepository;
+import com.salasky.springjwt.repository.*;
 import com.salasky.springjwt.security.jwt.JwtUtils;
 import com.salasky.springjwt.security.services.UserDetailsImpl;
 import com.salasky.springjwt.validator.Validator;
@@ -45,9 +42,9 @@ public class AuthController {
     private EmployeeRepositories employeeRepositories;
     private SubdivisionRepositories subdivisionRepositories;
     private Validator validator;
-
+    private CompanyRepositories companyRepositories;
     @Autowired
-    public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils, EmployeeRepositories employeeRepositories, SubdivisionRepositories subdivisionRepositories, Validator validator) {
+    public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder encoder, JwtUtils jwtUtils, EmployeeRepositories employeeRepositories, SubdivisionRepositories subdivisionRepositories, Validator validator, CompanyRepositories companyRepositories) {
         this.authenticationManager = authenticationManager;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
@@ -56,6 +53,7 @@ public class AuthController {
         this.employeeRepositories = employeeRepositories;
         this.subdivisionRepositories = subdivisionRepositories;
         this.validator = validator;
+        this.companyRepositories = companyRepositories;
     }
 
     @PostMapping("/signin")
@@ -81,9 +79,6 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-        System.out.println(signUpRequest.getUsername());
-        System.out.println(signUpRequest.getFirstName());
-        System.out.println(signUpRequest.getJobTitle());
 
         if (userRepository.existsByUsername(signUpRequest.getUsername())) {
             logger.error("Username уже используется");
@@ -99,58 +94,77 @@ public class AuthController {
                     .body(new MessageResponse("Email уже используется"));
         }
 
-        Optional<Subdivision> subdivision=subdivisionRepositories.findByName(signUpRequest.getSubdivisionName());
-        if(subdivision.isPresent()){
-        // Create new user's account
-        User user = new User(signUpRequest.getUsername(),
-                signUpRequest.getEmail(),
-                encoder.encode(signUpRequest.getPassword()));
 
-        Set<String> strRoles = signUpRequest.getRole();
-        Set<Role> roles = new HashSet<>();
 
-        if (strRoles == null) {
-            Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-            roles.add(userRole);
-        } else {
-            strRoles.forEach(role -> {
-                switch (role) {
-                    case "admin":
-                        Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(adminRole);
-
-                        break;
-                    case "mod":
-                        Role modRole = roleRepository.findByName(ERole.ROLE_MODERATOR)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(modRole);
-
-                        break;
-                    default:
-                        Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-                        roles.add(userRole);
-                }
-            });
+        Optional<Company> company = companyRepositories.findCompanyByCompanyName(signUpRequest.getCompanyName());
+        if (!company.isPresent()) {
+            logger.error("Добавление пользователя.Company c названием "+signUpRequest.getCompanyName()+ " не существует");
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Company c названием "+signUpRequest.getCompanyName()+ " не существует\n" +
+                            "Пожалуйста,обратитесь к модератору для добавления компании в базу"));
         }
 
-        user.setRoles(roles);
-        userRepository.save(user);
+        Optional<Subdivision> subdivision=subdivisionRepositories.findByCompanyAndName(company.get(),signUpRequest.getSubdivisionName());
 
-        // Create new employee
+        if (subdivision.isPresent()) {
+            // Create new user's account
+            User user = new User(signUpRequest.getUsername(),
+                    signUpRequest.getEmail(),
+                    encoder.encode(signUpRequest.getPassword()));
 
-            Employee employee=new Employee(signUpRequest.getUsername(),signUpRequest.getFirstName()
-                    ,signUpRequest.getSecondName(),signUpRequest.getLastName()
-                    ,signUpRequest.getJobTitle(),subdivision.get());
+            Set<String> strRoles = signUpRequest.getRole();
+            Set<Role> roles = new HashSet<>();
+
+            if (strRoles == null) {
+                Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+                        .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                roles.add(userRole);
+            } else {
+                strRoles.forEach(role -> {
+                    switch (role) {
+                        case "admin":
+                            Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
+                                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                            roles.add(adminRole);
+
+                            break;
+                        case "mod":
+                            Role modRole = roleRepository.findByName(ERole.ROLE_MODERATOR)
+                                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                            roles.add(modRole);
+
+                            break;
+                        default:
+                            Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+                                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                            roles.add(userRole);
+                    }
+                });
+            }
+
+            user.setRoles(roles);
+            userRepository.save(user);
+
+            // Create new employee
+
+            Employee employee = new Employee(signUpRequest.getUsername(), signUpRequest.getFirstName()
+                    , signUpRequest.getSecondName(), signUpRequest.getLastName()
+                    , signUpRequest.getJobTitle(), subdivision.get());
             employeeRepositories.save(employee);
             logger.info("Добавлен новый работник");
-            return  ResponseEntity.status(HttpStatus.OK).body(employee);
+            return ResponseEntity
+                    .ok()
+                    .body(new MessageResponse("Пользователь "+signUpRequest.getUsername()+" успешно добавлен\n" +
+                            "Пожалуйста,войдите с зарегестрированными данными"));
         }
 
-        logger.error("Добавление пользователя.Subdivision c названием "+signUpRequest.getSubdivisionName()+ " не существует");
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Subdivision c названием "+signUpRequest.getSubdivisionName()+ " не существует\n" +
-                "Пожалуйста обратитесь к модератору для добавления подразделения в базу");
+
+
+        logger.error("Добавление пользователя.Subdivision c названием "+signUpRequest.getSubdivisionName()+ " не существует внутри данной компании");
+        return ResponseEntity
+                .badRequest()
+                .body(new MessageResponse("В выбранной компании не найдено подразделение "+signUpRequest.getSubdivisionName()+ "\n" +
+                        "Пожалуйста,обратитесь к модератору для добавления подразделения в базу"));
     }
 }

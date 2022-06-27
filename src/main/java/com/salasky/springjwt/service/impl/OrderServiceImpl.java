@@ -50,11 +50,10 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public ResponseEntity newOrder(OrderDTO orderDTO) {
 
-        //Реализовать: автор поручения-тот кто аутентифицировался
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentPrincipalName = authentication.getName();
-        System.out.println(currentPrincipalName);
+
 
         var authorOrder=employeeRepositories.findByUsername(currentPrincipalName).get();
 
@@ -144,6 +143,16 @@ public class OrderServiceImpl implements OrderService {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Не удалось найти поручение с id "+id);
     }
 
+
+    @Override
+    public List<Order> getMyOrder() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+
+        return null;
+    }
+
+
     @Override
     public ResponseEntity delete(Long id) {
         if(orderRepositories.existsById(id)){
@@ -200,6 +209,7 @@ public class OrderServiceImpl implements OrderService {
         logger.error("Не удалось поменять состояние StateMchine. Нет поручения с id " + orderid);
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Не удалось поменять состояние StateMchine. Нет поручения с id " + orderid);
     }
+
 
 
 

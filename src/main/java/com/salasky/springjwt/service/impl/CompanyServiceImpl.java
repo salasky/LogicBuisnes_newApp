@@ -1,6 +1,7 @@
 package com.salasky.springjwt.service.impl;
 
 import com.salasky.springjwt.models.Company;
+import com.salasky.springjwt.models.payload.response.MessageResponse;
 import com.salasky.springjwt.repository.CompanyRepositories;
 import com.salasky.springjwt.repository.SubdivisionRepositories;
 import com.salasky.springjwt.service.CompanyService;
@@ -32,14 +33,7 @@ public class CompanyServiceImpl implements CompanyService {
 
     @Override
     public List<Company> getAll() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        var currentPrincipalName = authentication.getName();
-        var autoritis=authentication.getAuthorities();
 
-        var s4=authentication.isAuthenticated();
-        System.out.println(currentPrincipalName);//login
-        System.out.println(autoritis);//роли
-        System.out.println(s4);
         logger.info("Выдан список компаний");
         return companyRepositories.findAll();
     }
@@ -58,7 +52,9 @@ public class CompanyServiceImpl implements CompanyService {
             return ResponseEntity.status(HttpStatus.OK).body(companyRepositories.findById(id).get());
         }
         logger.error("Компания с id "+id+ " не найдена");
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Компания с id "+id+ " не найдена");
+        return ResponseEntity
+                .badRequest()
+                .body(new MessageResponse("Компания с id "+id+ " не найдена"));
 
     }
 
@@ -89,10 +85,15 @@ public class CompanyServiceImpl implements CompanyService {
         if(companyRepositories.existsById(id)){
             companyRepositories.deleteById(id);
             logger.info("Компания  с id "+id+ " удалена");
-            return ResponseEntity.status(HttpStatus.OK).body("Company с id "+ id+ " успешно удален");
+            return ResponseEntity
+                    .ok()
+                    .body(new MessageResponse("Company с id "+ id+ " успешно удален"));
+
         }
         logger.info("Удаление.Компания  с id "+id+ " не найдена");
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Company с id "+ id+ " не найден");
+        return ResponseEntity
+                .badRequest()
+                .body(new MessageResponse("Удаление.Компания  с id "+id+ " не найдена"));
     }
 
 }
