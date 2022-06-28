@@ -18,8 +18,9 @@ public class SpringBootSecurityJwtApplication {
 		var employeeRepositories=context.getBean(EmployeeRepositories.class);
 		var orderRepositories=context.getBean(OrderRepositories.class);
 
-		System.out.println(orderRepositories.getAllByemployeeAuthor(employeeRepositories.findByUsername("salavat").get()));
-
+		/*System.out.println(orderRepositories.findAllByEmployeeAuthor(employeeRepositories.findByUsername("salavat").get()));
+		System.out.println(orderRepositories.findOrderByExecEmployee("ddWoRTom"));*/
+		System.out.println(orderRepositories.findOrderBySubject("ST"));
 		/*
         Company company=new Company("Neft","Adress",
                 "Adress","Ruk");

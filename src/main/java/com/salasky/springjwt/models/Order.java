@@ -38,7 +38,7 @@ public class Order {
     @Column(name = "order_text")
     private String orderText;
 
-    @JsonIgnore
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name="employeeAuthor_id", nullable=false)
     private Employee AuthEmployee;

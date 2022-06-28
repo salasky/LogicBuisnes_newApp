@@ -1,10 +1,13 @@
 package com.salasky.springjwt.controllers;
 
+import com.salasky.springjwt.models.Company;
 import com.salasky.springjwt.models.DTO.OrderDTO;
+import com.salasky.springjwt.models.DTO.OrderDTOA;
 import com.salasky.springjwt.models.Order;
 import com.salasky.springjwt.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,51 +20,91 @@ public class OrderController {
     private OrderService orderService;
 
 
+    @GetMapping
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('USER')")
+    public List<OrderDTO> getAll() {
+        return orderService.getAll();
+    }
+
+
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity getById(@PathVariable Long id) {
+        return orderService.getById(id);
+    }
+
+
     @PostMapping("/add")
-    public ResponseEntity newOrder(@RequestBody OrderDTO orderDTO){
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity newOrder(@RequestBody OrderDTO orderDTO) {
         return orderService.newOrder(orderDTO);
     }
 
 
-    @GetMapping
-    public List<Order> getAll(){
-        return orderService.getAll();
+    @PostMapping("/update/{id}")
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN')")
+    public ResponseEntity update(@RequestBody OrderDTO orderDTO, @PathVariable Long id) {
+        return orderService.update(orderDTO, id);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity getById(@PathVariable Long id){
-        return orderService.getById(id);
-    }
 
     @GetMapping("/delete/{id}")
-    public ResponseEntity delete(@PathVariable Long id){
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity delete(@PathVariable Long id) {
         return orderService.delete(id);
     }
 
 
+    @GetMapping("/authorders")
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('USER')")
+    public List<OrderDTO> getAuthorOrder() {
+        return orderService.getAuthorOrder();
+    }
+
+
+    @GetMapping("/execorders")
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('USER')")
+    public List<OrderDTOA> getExecOrder() {
+        return orderService.getExecutionOrderMe();
+    }
+
+    @GetMapping("/findBySubject")
+    public List<OrderDTO> findOrderBySubjects(@RequestParam String subject) {
+        return orderService.findOrderBySubject(subject);
+    }
+
 
     @GetMapping("/perform/{id}")
-    public ResponseEntity perform(@PathVariable Long id){
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity perform(@PathVariable Long id) {
         return orderService.performanceState(id);
     }
 
+
     @GetMapping("/control/{id}")
-    public ResponseEntity control(@PathVariable Long id){
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity control(@PathVariable Long id) {
         return orderService.control(id);
     }
 
+
     @GetMapping("/accept/{id}")
-    public ResponseEntity accept(@PathVariable Long id){
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity accept(@PathVariable Long id) {
         return orderService.accept(id);
     }
 
+
     @GetMapping("/revision/{id}")
-    public ResponseEntity revision(@PathVariable Long id){
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity revision(@PathVariable Long id) {
         return orderService.revision(id);
     }
 
+
     @GetMapping("/secondperform/{id}")
-    public ResponseEntity secondperform(@PathVariable Long id){
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity secondperform(@PathVariable Long id) {
         return orderService.secondPerform(id);
     }
 }

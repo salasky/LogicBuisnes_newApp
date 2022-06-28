@@ -1,15 +1,13 @@
 package com.salasky.springjwt.models.DTO;
 
-import com.salasky.springjwt.statemachine.state.State;
 import lombok.*;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Getter
 @Setter
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderDTO {
+public class OrderDTOA {
 
     private String subject;
 
@@ -21,8 +19,7 @@ public class OrderDTO {
     private String orderText;
 
 
-
-    private String execEmployeeUsername;
+    private String AuthorEmployeeUsername;
 
 
 }

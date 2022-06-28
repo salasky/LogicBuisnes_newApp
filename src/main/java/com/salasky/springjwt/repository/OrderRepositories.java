@@ -13,10 +13,13 @@ import java.util.List;
 public interface OrderRepositories extends JpaRepository<Order,Long> {
 
 
-
+    //Поиск по автору поручения
     @Query("SELECT o FROM Order o join fetch o.AuthEmployee WHERE o.AuthEmployee= ?1")
-    List<Order> getAllByemployeeAuthor(Employee employee);
+    List<Order> findAllByEmployeeAuthor(Employee employee);
 
+    //Поиск по исполнителю поручения
+    @Query("select t from Order t join t.ExecEmployee u where u.username = :username")
+    List<Order> findOrderByExecEmployee(@Param("username") String username);
 
-
+    List<Order> findOrderBySubject(String subject);
 }

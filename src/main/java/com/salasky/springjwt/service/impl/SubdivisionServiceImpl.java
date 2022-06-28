@@ -36,16 +36,16 @@ public class SubdivisionServiceImpl implements SubdivisionService {
     public ResponseEntity getById(Long id) {
         if(subdivisionRepositories.existsById(id)){
             logger.info("Выдача инфрмации о подразделении с id "+id);
-            return ResponseEntity.status(HttpStatus.OK).body(subdivisionRepositories.findById(id).get());
+            var sb=subdivisionRepositories.findById(id).get();
+            return ResponseEntity.status(HttpStatus.OK).body(new OutSubdivisionDTO(sb.getId(),sb.getName(),sb.getContact(),sb.getSupervisor(),sb.getCompany().getCompanyName()));
         }
         logger.info("Не найдено подразделение с id "+id);
-        return ResponseEntity.status(HttpStatus.OK).body("Не найдено подразделение с id "+id);
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Не найдено подразделение с id "+id));
     }
 
     @Override
     public List<OutSubdivisionDTO> getAll() {
         logger.info("Выдача инфрмации о подразделениях");
-
 
         return  subdivisionRepositories.findAll().stream().map(subdivision -> new OutSubdivisionDTO(
                 subdivision.getId(),subdivision.getName(),subdivision.getContact(),
@@ -93,8 +93,10 @@ public class SubdivisionServiceImpl implements SubdivisionService {
             return ResponseEntity.status(HttpStatus.OK).body("Создано новое подразделение с id "+id);
         }
         logger.error("Не найдена компания с названием "+newsubdivision.getCompanyName());
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Не найдена компания с названием "+newsubdivision.getCompanyName()+"\n" +
-                "Пожалуйста,обратитесь к модератору для добавления в базу");
+        return ResponseEntity
+                .badRequest()
+                .body(new MessageResponse("Не найдена компания с названием "+newsubdivision.getCompanyName()+"\n" +
+                        "Пожалуйста,обратитесь к модератору для добавления в базу"));
     }
 
     @Override
@@ -105,7 +107,9 @@ public class SubdivisionServiceImpl implements SubdivisionService {
             return ResponseEntity.status(HttpStatus.OK).body("Subdivision с id "+ id+ " успешно удален");
         }catch (Exception e){
             logger.error("Удаление подразделения. Подразделение с id "+id+ " не найдено");
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Subdivision с id "+ id+ " не найден");
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Удаление подразделения. Подразделение с id "+id+ " не найдено"));
         }
 
     }
