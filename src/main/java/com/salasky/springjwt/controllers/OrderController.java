@@ -3,6 +3,8 @@ package com.salasky.springjwt.controllers;
 import com.salasky.springjwt.models.Company;
 import com.salasky.springjwt.models.DTO.OrderDTO;
 import com.salasky.springjwt.models.DTO.OrderDTOA;
+import com.salasky.springjwt.models.DTO.OutOrderDTOAUTHOR;
+import com.salasky.springjwt.models.DTO.OutOrderDToEMPLOYEE;
 import com.salasky.springjwt.models.Order;
 import com.salasky.springjwt.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +24,7 @@ public class OrderController {
 
     @GetMapping
     @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('USER')")
-    public List<OrderDTO> getAll() {
+    public List<OutOrderDTOAUTHOR> getAll() {
         return orderService.getAll();
     }
 
@@ -34,6 +36,17 @@ public class OrderController {
     }
 
 
+
+    @GetMapping("/emp/{id}")
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('USER')")
+    public ResponseEntity getByIdE(@PathVariable Long id) {
+        return orderService.getByIdE(id);
+    }
+
+
+
+
+
     @PostMapping("/add")
     @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('USER')")
     public ResponseEntity newOrder(@RequestBody OrderDTO orderDTO) {
@@ -42,7 +55,7 @@ public class OrderController {
 
 
     @PostMapping("/update/{id}")
-    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('USER')")
     public ResponseEntity update(@RequestBody OrderDTO orderDTO, @PathVariable Long id) {
         return orderService.update(orderDTO, id);
     }
@@ -55,21 +68,25 @@ public class OrderController {
     }
 
 
+
     @GetMapping("/authorders")
     @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('USER')")
-    public List<OrderDTO> getAuthorOrder() {
+    public List<OutOrderDTOAUTHOR> getAuthorOrder() {
         return orderService.getAuthorOrder();
     }
 
 
     @GetMapping("/execorders")
     @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN') or hasRole('USER')")
-    public List<OrderDTOA> getExecOrder() {
+    public List<OutOrderDToEMPLOYEE> getExecOrder() {
         return orderService.getExecutionOrderMe();
     }
 
+
+
+
     @GetMapping("/findBySubject")
-    public List<OrderDTO> findOrderBySubjects(@RequestParam String subject) {
+    public List<OutOrderDTOAUTHOR> findOrderBySubjects(@RequestParam String subject) {
         return orderService.findOrderBySubject(subject);
     }
 

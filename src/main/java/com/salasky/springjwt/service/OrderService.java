@@ -2,6 +2,8 @@ package com.salasky.springjwt.service;
 
 import com.salasky.springjwt.models.DTO.OrderDTO;
 import com.salasky.springjwt.models.DTO.OrderDTOA;
+import com.salasky.springjwt.models.DTO.OutOrderDTOAUTHOR;
+import com.salasky.springjwt.models.DTO.OutOrderDToEMPLOYEE;
 import com.salasky.springjwt.models.Employee;
 import com.salasky.springjwt.models.Order;
 import com.salasky.springjwt.statemachine.event.Event;
@@ -18,10 +20,11 @@ public interface OrderService {
     ResponseEntity delete(Long id);
 
 
-    List<OrderDTO> getAll();
+    List<OutOrderDTOAUTHOR> getAll();
 
     ResponseEntity getById(Long id);
 
+    ResponseEntity getByIdE(Long id);
 
     ResponseEntity control(Long orderId);
 
@@ -33,11 +36,11 @@ public interface OrderService {
 
     ResponseEntity performanceState(Long orderid);
 
-    List<OrderDTO> getAuthorOrder();
+    List<OutOrderDTOAUTHOR> getAuthorOrder();
 
-    List<OrderDTOA> getExecutionOrderMe();
+    List<OutOrderDToEMPLOYEE> getExecutionOrderMe();
 
-    List<OrderDTO> findOrderBySubject(String subject);
+    List<OutOrderDTOAUTHOR> findOrderBySubject(String subject);
 
     //получение конечного автомата из базы данных
     StateMachine<State, Event> build (Long orderId);

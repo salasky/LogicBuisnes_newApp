@@ -1,7 +1,8 @@
 package com.salasky.springjwt.service.impl;
 
 import com.salasky.springjwt.models.DTO.OrderDTO;
-import com.salasky.springjwt.models.DTO.OrderDTOA;
+import com.salasky.springjwt.models.DTO.OutOrderDToEMPLOYEE;
+import com.salasky.springjwt.models.DTO.OutOrderDTOAUTHOR;
 import com.salasky.springjwt.models.Employee;
 import com.salasky.springjwt.models.Order;
 import com.salasky.springjwt.models.payload.response.MessageResponse;
@@ -82,7 +83,7 @@ public class OrderServiceImpl implements OrderService {
         var sm = stateMachineFactory.getStateMachine();
         try {
             persister.persist(sm, String.valueOf(order.getId()));
-            order.setState(sm.getState().getId());//восстанавливаем состояние см
+            order.setState(sm.getState().getId());//восстанавливаем состояние см, возможно не надо дополнительно хранить state в бд
             var saveOrder = orderRepositories.save(order);
             logger.info("Создано поручение с id " + saveOrder.getId());
             return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Создано поручение с id"+ saveOrder.getId()));
@@ -114,6 +115,13 @@ public class OrderServiceImpl implements OrderService {
         var authorOrder=employeeRepositories.findByUsername(currentPrincipalName).get();
             if(employeeRepositories.existsByUsername(orderDTO.getExecEmployeeUsername())){
                 if(orderRepositories.existsById(id)){
+                    if (!dateValidator.isValidDate(orderDTO.getPeriodExecution())) {
+                        logger.error("Неверный формат даты исполнения поручения");
+                        return ResponseEntity
+                                .badRequest()
+                                .body(new MessageResponse("Неверный формат даты исполнения поручения\n" +
+                                        "Формат даты YYYY-MM-DD"));
+                    }
                     var order=orderRepositories.findById(id).get();
                     logger.info("Пользователь "+currentPrincipalName+". Обновление информации о подразделении");
                     var saveOrder=setter(orderDTO,order,authorOrder);
@@ -135,15 +143,15 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderDTO> getAll() {
+    public List<OutOrderDTOAUTHOR> getAll() {
         //в текущем функционале не используется,но добавить автора поручения (создай еще dto)
-        return  orderRepositories.findAll().stream().map(order -> new OrderDTO(order.getSubject(),order.getPeriodExecution(),order.getSignControl(),
-                order.getOrderText(),employeeRepositories.findByUsername(order.getExecEmployee().get(0).getUsername()).get().getUsername())).collect(Collectors.toList());
+        return  orderRepositories.findAll().stream().map(order -> new OutOrderDTOAUTHOR(order.getId(),order.getSubject(),order.getPeriodExecution(),order.getSignControl(),
+                order.getOrderText(),employeeRepositories.findByUsername(order.getExecEmployee().get(0).getUsername()).get().getUsername(),order.getState())).collect(Collectors.toList());
 
     }
 
     @Override
-    public ResponseEntity getById(Long id) {
+    public ResponseEntity getById(Long id) {///Ищем по id , но кладем исполнителя поруения в тело
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentPrincipalName = authentication.getName();
         var orders=orderRepositories.findById(id);
@@ -151,9 +159,9 @@ public class OrderServiceImpl implements OrderService {
         if(orders.isPresent()){
             var order=orders.get();
             logger.info("Пользователь "+currentPrincipalName+ ".Выдача инфрмации о поручении");
-            var orderDTO=new OrderDTO(order.getSubject(),order.getPeriodExecution(),order.getSignControl(),
-                    order.getOrderText(),order.getExecEmployee().get(0).getUsername());
-            return ResponseEntity.status(HttpStatus.OK).body(orderDTO);
+            var orderDTOAUTHOR=new OutOrderDTOAUTHOR(order.getId(),order.getSubject(),order.getPeriodExecution(),order.getSignControl(),
+                    order.getOrderText(),order.getExecEmployee().get(0).getUsername(),order.getState());
+            return ResponseEntity.status(HttpStatus.OK).body(orderDTOAUTHOR); ///
         }
         logger.error("Пользователь "+currentPrincipalName+".Не удалось найти поручение с id "+id);
         return ResponseEntity
@@ -162,7 +170,26 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderDTO> getAuthorOrder() {
+    public ResponseEntity getByIdE(Long id) { ///Ищем по id , но кладем автора поруения в тело
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+        var orders=orderRepositories.findById(id);
+
+        if(orders.isPresent()){
+            var order=orders.get();
+            logger.info("Пользователь "+currentPrincipalName+ ".Выдача инфрмации о поручении");
+            var orderDTOEmployee=new OutOrderDToEMPLOYEE(order.getId(),order.getSubject(),order.getPeriodExecution(),order.getSignControl(),
+                    order.getOrderText(),order.getAuthEmployee().getUsername(),order.getState());
+            return ResponseEntity.status(HttpStatus.OK).body(orderDTOEmployee); ///
+        }
+        logger.error("Пользователь "+currentPrincipalName+".Не удалось найти поручение с id "+id);
+        return ResponseEntity
+                .badRequest()
+                .body(new MessageResponse("Не удалось найти поручение с id "+id));
+    }
+
+    @Override
+    public List<OutOrderDTOAUTHOR> getAuthorOrder() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentPrincipalName = authentication.getName();
 
@@ -170,28 +197,32 @@ public class OrderServiceImpl implements OrderService {
         if(emp.isPresent()){
             var ordersList=orderRepositories.findAllByEmployeeAuthor(emp.get());
 
-           return ordersList.stream().map(order -> new OrderDTO(order.getSubject(),order.getPeriodExecution(),order.getSignControl(),
-                    order.getOrderText(),employeeRepositories.findByUsername(order.getExecEmployee().get(0).getUsername()).get().getUsername())).collect(Collectors.toList());
+           return ordersList.stream().map(order -> new OutOrderDTOAUTHOR(order.getId(),order.getSubject(),order.getPeriodExecution(),order.getSignControl(),
+                    order.getOrderText(),employeeRepositories.findByUsername(order.getExecEmployee().get(0).getUsername()).get().getUsername(),order.getState())).collect(Collectors.toList());
         }
         return null;
     }
 
     @Override
-    public List<OrderDTOA> getExecutionOrderMe() {
+    public List<OutOrderDToEMPLOYEE> getExecutionOrderMe() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String currentPrincipalName = authentication.getName();
-        System.out.println(currentPrincipalName);
+
 
         var orderList=orderRepositories.findOrderByExecEmployee(currentPrincipalName);
-        return orderList.stream().map(order -> new OrderDTOA(order.getSubject(),order.getPeriodExecution(),order.getSignControl(),
-                order.getOrderText(),employeeRepositories.findByUsername(order.getExecEmployee().get(0).getUsername()).get().getUsername())).collect(Collectors.toList());
+        return orderList.stream().map(order -> new OutOrderDToEMPLOYEE(order.getId(),order.getSubject(),order.getPeriodExecution(),order.getSignControl(),
+                order.getOrderText(),employeeRepositories.findByUsername(order.getAuthEmployee().getUsername()).get().getUsername(),order.getState())).collect(Collectors.toList());
 
     }
 
     @Override
-    public List<OrderDTO> findOrderBySubject(String subject) {
-        return  orderRepositories.findOrderBySubject(subject).stream().map(order->new OrderDTO(order.getSubject(),order.getPeriodExecution(),order.getSignControl(),
-                order.getOrderText(),employeeRepositories.findByUsername(order.getExecEmployee().get(0).getUsername()).get().getUsername())).collect(Collectors.toList());
+    public List<OutOrderDTOAUTHOR> findOrderBySubject(String subject) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String currentPrincipalName = authentication.getName();
+
+        return  orderRepositories.findOrderBySubject(subject).stream().map(order->new OutOrderDTOAUTHOR(order.getId(),order.getSubject(),order.getPeriodExecution(),order.getSignControl(),
+                order.getOrderText(),employeeRepositories.findByUsername(order.getExecEmployee().get(0).getUsername()).get().getUsername(),order.getState())).collect(Collectors.toList());
+
     }
 
     @Override
@@ -202,7 +233,7 @@ public class OrderServiceImpl implements OrderService {
            if(orderRepositories.findById(id).get().getAuthEmployee().getUsername().equals(currentPrincipalName)){
                orderRepositories.deleteById(id);
                logger.info("Поручение  с id "+id+ " удалено");
-               return ResponseEntity.status(HttpStatus.OK).body("Поручение  с id "+id+ " удалено");
+               return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Информация о подразделении успешно удалена"));//
            }
             logger.info("Попытка удаления поручения");
             return ResponseEntity
@@ -288,14 +319,14 @@ public class OrderServiceImpl implements OrderService {
             }
 
             logger.error("Предыдущее состояние машины не Performance.Текщее состояние " + sm.getState().getId());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Предыдущее состояние машины не Performance.Текщее состояние " + sm.getState().getId()+"\n" +
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Предыдущее состояние машины не Performance.Текщее состояние " + sm.getState().getId()+"\n" +
                     "PREPARATION-->PERFORMANCE-->CONTROL-->ACCEPTANCE\n" +
                     "                ^              |\n" +
                     "                |              |\n" +
-                    "                |-REVISION <---\n" );
+                    "                |-REVISION <---\n" ));
         }
         logger.error("Не удалось поменять состояние StateMchine. Нет поручения с id " + orderid);
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Не удалось поменять состояние StateMchine. Нет поручения с id " + orderid);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Не удалось поменять состояние StateMchine. Нет поручения с id " + orderid));
     }
 
     //В статус принятие меняет только автор поручения..реализовать
@@ -327,14 +358,14 @@ public class OrderServiceImpl implements OrderService {
             }
 
             logger.error("Предыдущее состояние машины не Control.Текщее состояние " + sm.getState().getId());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Предыдущее состояние машины не Control.Текщее состояние " + sm.getState().getId()+"\n" +
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Предыдущее состояние машины не Control.Текщее состояние " + sm.getState().getId()+"\n" +
                     "PREPARATION-->PERFORMANCE-->CONTROL-->ACCEPTANCE\n" +
                     "                ^              |\n" +
                     "                |              |\n" +
-                    "                |-REVISION <---\n" );
+                    "                |-REVISION <---\n" ));
         }
         logger.error("Не удалось поменять состояние StateMchine. Нет поручения с id " + orderid);
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Не удалось поменять состояние StateMchine. Нет поручения с id " + orderid);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Не удалось поменять состояние StateMchine. Нет поручения с id " + orderid));
     }
 
     @Override
